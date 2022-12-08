@@ -55,11 +55,11 @@ std::unique_ptr<QueryPlan> createLocalPlan(
     if (coordinator)
     {
         new_context->parallel_reading_coordinator = coordinator;
+        new_context->getClientInfo().interface = ClientInfo::Interface::LOCAL;
         new_context->getClientInfo().collaborate_with_initiator = true;
         new_context->getClientInfo().query_kind = ClientInfo::QueryKind::SECONDARY_QUERY;
         new_context->getClientInfo().count_participating_replicas = replica_count;
         new_context->getClientInfo().number_of_current_replica = replica_num;
-        new_context->getClientInfo().parallel_replicas_local_replica = true;
         new_context->setMergeTreeAllRangesCallback([coordinator](InitialAllRangesAnnouncement announcement)
         {
             coordinator->handleInitialAllRangesAnnouncement(announcement);

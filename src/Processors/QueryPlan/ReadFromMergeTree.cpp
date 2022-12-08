@@ -3,6 +3,7 @@
 #include <base/sort.h>
 #include <Common/JSONBuilder.h>
 #include <Common/logger_useful.h>
+#include <Common/isLocalAddress.h>
 #include "Storages/MergeTree/MergeTreeParallelReplicasSelectProcessor.h"
 #include "Storages/MergeTree/RequestResponse.h"
 #include <Interpreters/Context.h>
@@ -150,9 +151,6 @@ ReadFromMergeTree::ReadFromMergeTree(
             /// Just limit requested_num_streams otherwise.
             requested_num_streams = std::min<size_t>(requested_num_streams, settings.max_streams_for_merge_tree_reading);
     }
-
-    if (context->getClientInfo().parallel_replicas_local_replica)
-        assert(context->parallel_reading_coordinator);
 
     /// Add explicit description.
     setStepDescription(data.getStorageID().getFullNameNotQuoted());
@@ -1359,7 +1357,7 @@ void ReadFromMergeTree::initializePipeline(QueryPipelineBuilder & pipeline, cons
     const auto & input_order_info = query_info.getInputOrderInfo();
 
     /// Construct a proper coordinator
-    if (input_order_info && all_ranges_callback && context->getClientInfo().parallel_replicas_local_replica)
+    if (input_order_info && all_ranges_callback && context->getClientInfo().interface == ClientInfo::Interface::LOCAL)
     {
         assert(context->parallel_reading_coordinator);
         auto mode = input_order_info->direction == 1 ? CoordinationMode::WithOrder : CoordinationMode::ReverseOrder;

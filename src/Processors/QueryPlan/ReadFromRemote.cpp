@@ -280,6 +280,8 @@ ReadFromParallelRemoteReplicasStep::ReadFromParallelRemoteReplicasStep(
     Poco::Logger * log_,
     std::shared_ptr<const StorageLimitsList> storage_limits_)
     : ISourceStep(DataStream{.header = std::move(header_)})
+    , shard_info(shard_info_)
+    , query_ast(query_ast_)
     , coordinator(std::move(coordinator_))
     , stage(std::move(stage_))
     , main_table(std::move(main_table_))
@@ -309,12 +311,6 @@ void ReadFromParallelRemoteReplicasStep::enforceAggregationInOrder()
 {
     DB::enforceAggregationInOrder(stage, *context);
 }
-
-void ReadFromParallelRemoteReplicasStep::requestReadingInOrder()
-{
-    coordinator->setMode(CoordinationMode::WithOrder);
-}
-
 
 void ReadFromParallelRemoteReplicasStep::initializePipeline(QueryPipelineBuilder & pipeline, const BuildQueryPipelineSettings &)
 {
@@ -359,6 +355,8 @@ void ReadFromParallelRemoteReplicasStep::addPipeForSingeReplica(Pipes & pipes, s
     bool add_extremes = false;
     bool async_read = context->getSettingsRef().async_socket_for_remote;
     assert(stage != QueryProcessingStage::Complete);
+
+    std::cout << stage << std::endl;
 
     auto remote_query_executor = std::make_shared<RemoteQueryExecutor>(
         pool,

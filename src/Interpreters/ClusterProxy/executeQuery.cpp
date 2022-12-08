@@ -289,7 +289,7 @@ void executeQueryWithParallelReplicas(
     }
 
     auto new_context = Context::createCopy(context);
-    auto && [sort_description, sort_scope] = getRemoteShardsOutputStreamSortingProperties(plans, new_context);
+    // auto && [sort_description, sort_scope] = getRemoteShardsOutputStreamSortingProperties(plans, new_context);
     auto scalars = new_context->hasQueryContext() ? new_context->getQueryContext()->getScalars() : Scalars{};
     auto external_tables = new_context->getExternalTables();
 
@@ -306,9 +306,7 @@ void executeQueryWithParallelReplicas(
         std::move(scalars),
         std::move(external_tables),
         &Poco::Logger::get("ReadFromParallelRemoteReplicasStep"),
-        query_info.storage_limits,
-        sort_description,
-        sort_scope);
+        query_info.storage_limits);
 
     remote_plan->addStep(std::move(read_from_remote));
     remote_plan->addInterpreterContext(context);
