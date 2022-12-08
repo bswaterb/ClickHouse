@@ -241,8 +241,6 @@ public:
     /// Return true if storage can execute lightweight delete mutations.
     virtual bool supportsLightweightDelete() const { return false; }
 
-    void disableParallelReplicas() { can_use_parallel_replicas = false; }
-
 private:
 
     StorageID storage_id;
@@ -252,8 +250,6 @@ private:
     /// Multiversion storage metadata. Allows to read/write storage metadata
     /// without locks.
     MultiVersionStorageMetadataPtr metadata;
-
-    bool can_use_parallel_replicas{true};
 
 protected:
     RWLockImpl::LockHolder tryLockTimed(
