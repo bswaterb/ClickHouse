@@ -66,24 +66,17 @@ private:
     const Names column_names;
     const Names virtual_column_names;
 
-    struct PerPartParams
+    PrewhereInfoPtr prewhere_info;
+
+    struct PartWithParams
     {
         MergeTreeReadTaskColumns task_columns;
         NameSet column_name_set;
         MergeTreeBlockSizePredictorPtr size_predictor;
+        RangesInDataPart data_part;
     };
 
-    std::vector<PerPartParams> per_part_params;
-
-    PrewhereInfoPtr prewhere_info;
-
-    struct Part
-    {
-        MergeTreeData::DataPartPtr data_part;
-        size_t part_index_in_query;
-    };
-
-    std::vector<Part> parts_with_idx;
+    std::vector<PartWithParams> parts_ranges_with_params;
 
     RangesInDataPartsDescription buffered_ranges;
     RangesInDataParts parts_ranges;

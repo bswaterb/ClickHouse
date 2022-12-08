@@ -7,6 +7,7 @@
 #include <Common/JSONBuilder.h>
 #include <Interpreters/PreparedSets.h>
 #include <Interpreters/Context.h>
+#include <Storages/IStorage.h>
 
 namespace DB
 {
@@ -137,6 +138,9 @@ void addCreatingSetsStep(QueryPlan & query_plan, PreparedSets::SubqueriesForSets
             continue;
 
         auto plan = subquery_for_set.detachSource();
+
+        if (subquery_for_set.table)
+            subquery_for_set.table->disableParallelReplicas();
 
         const Settings & settings = context->getSettingsRef();
         auto creating_set = std::make_unique<CreatingSetStep>(

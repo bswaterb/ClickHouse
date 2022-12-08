@@ -6308,13 +6308,8 @@ QueryProcessingStage::Enum MergeTreeData::getQueryProcessingStage(
     const StorageSnapshotPtr & storage_snapshot,
     SelectQueryInfo & query_info) const
 {
-    LOG_TRACE(&Poco::Logger::get("MergeTreeData"), "getQueryProcessingStage");
-
     if (query_context->getClientInfo().collaborate_with_initiator)
-    {
-        LOG_TRACE(&Poco::Logger::get("MergeTreeData"), "Collaborate with inititiantor!");
         return QueryProcessingStage::Enum::FetchColumns;
-    }
 
     if (query_context->getSettingsRef().allow_experimental_parallel_reading_from_replicas && !query_context->getClientInfo().collaborate_with_initiator)
         return QueryProcessingStage::Enum::WithMergeableState;

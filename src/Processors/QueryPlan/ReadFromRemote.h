@@ -96,7 +96,6 @@ private:
 
     Cluster::ShardInfo shard_info;
     ASTPtr query_ast;
-    Block header;
     ParallelReplicasReadingCoordinatorPtr coordinator;
     QueryProcessingStage::Enum stage;
     StorageID main_table;

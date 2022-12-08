@@ -45,9 +45,9 @@ std::vector<size_t> MergeTreeReadPoolParallelReplicas::fillPerPartInfo(const Ran
     std::vector<size_t> per_part_sum_marks;
     Block sample_block = storage_snapshot->metadata->getSampleBlock();
 
-    for (const auto i : collections::range(0, parts.size()))
+    for (const auto index : collections::range(0, parts.size()))
     {
-        const auto & part = parts[i];
+        const auto & part = parts[index];
 
         /// Read marks for every data part.
         size_t sum_marks = 0;
@@ -66,16 +66,15 @@ std::vector<size_t> MergeTreeReadPoolParallelReplicas::fillPerPartInfo(const Ran
 
         auto size_predictor = nullptr;
 
-        auto & per_part = per_part_params.emplace_back();
+        auto & per_part = parts_ranges_with_params.emplace_back();
 
+        per_part.data_part = part;
         per_part.size_predictor = std::move(size_predictor);
 
         /// will be used to distinguish between PREWHERE and WHERE columns when applying filter
         const auto & required_column_names = task_columns.columns.getNames();
         per_part.column_name_set = {required_column_names.begin(), required_column_names.end()};
         per_part.task_columns = std::move(task_columns);
-
-        parts_with_idx.push_back({part.data_part, part.part_index_in_query});
     }
 
     return per_part_sum_marks;
@@ -124,12 +123,13 @@ MergeTreeReadTaskPtr MergeTreeReadPoolParallelReplicas::getTask()
 
     RangesInDataPart part;
     size_t part_idx = 0;
-    for (auto & other_part : parts_ranges)
+    for (size_t index = 0; index < parts_ranges_with_params.size(); ++index)
     {
-        if (other_part.data_part->info == current_task.info)
+        auto & other_part = parts_ranges_with_params[index];
+        if (other_part.data_part.data_part->info == current_task.info)
         {
-            part = other_part;
-            part_idx = other_part.part_index_in_query;
+            part = other_part.data_part;
+            part_idx = index;
             break;
         }
     }
@@ -160,7 +160,7 @@ MergeTreeReadTaskPtr MergeTreeReadPoolParallelReplicas::getTask()
     if (current_task.ranges.empty())
         buffered_ranges.pop_front();
 
-    const auto & per_part = per_part_params[part_idx];
+    const auto & per_part = parts_ranges_with_params[part_idx];
 
     auto curr_task_size_predictor
         = !per_part.size_predictor ? nullptr : std::make_unique<MergeTreeBlockSizePredictor>(*per_part.size_predictor); /// make a copy
