@@ -1301,6 +1301,8 @@ ReadFromMergeTree::AnalysisResult ReadFromMergeTree::getAnalysisResult() const
 
 void ReadFromMergeTree::initializePipeline(QueryPipelineBuilder & pipeline, const BuildQueryPipelineSettings &)
 {
+    LOG_DEBUG(log, "Reading step identifier is {}", identifier);
+
     auto result = getAnalysisResult();
     LOG_DEBUG(
         log,

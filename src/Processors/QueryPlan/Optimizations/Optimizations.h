@@ -9,6 +9,9 @@ namespace DB
 namespace QueryPlanOptimizations
 {
 
+/// This pass can't modify the structure of a plan as a tree
+/// And generally uses for enumerating reading steps for parallel replicas
+void optimizeTreeZerothPass(QueryPlan::Node & root);
 /// Main functions which optimize QueryPlan tree.
 /// First pass (ideally) apply local idempotent operations on top of Plan.
 void optimizeTreeFirstPass(const QueryPlanOptimizationSettings & settings, QueryPlan::Node & root, QueryPlan::Nodes & nodes);
@@ -57,6 +60,8 @@ size_t tryReuseStorageOrderingForWindowFunctions(QueryPlan::Node * parent_node, 
 
 /// Reading in order from MergeTree table if DISTINCT columns match or form a prefix of MergeTree sorting key
 size_t tryDistinctReadInOrder(QueryPlan::Node * node);
+
+size_t tryEnumerateReadingSteps(QueryPlan::Node * node);
 
 /// Put some steps under union, so that plan optimisation could be applied to union parts separately.
 /// For example, the plan can be rewritten like:

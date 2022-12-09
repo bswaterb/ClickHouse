@@ -27,6 +27,8 @@ struct MergeTreeDataSelectSamplingData
 struct MergeTreeDataSelectAnalysisResult;
 using MergeTreeDataSelectAnalysisResultPtr = std::shared_ptr<MergeTreeDataSelectAnalysisResult>;
 
+using ReadingStepIndentifier = ssize_t;
+
 /// This step is created to read from MergeTree* table.
 /// For now, it takes a list of parts and creates source from it.
 class ReadFromMergeTree final : public ISourceStep
@@ -156,6 +158,7 @@ public:
     const PrewhereInfo * getPrewhereInfo() const { return prewhere_info.get(); }
 
     void requestReadingInOrder(size_t prefix_size, int direction, size_t limit);
+    void setReadingStepIdentifier(ReadingStepIndentifier identifier_) { identifier = identifier_; }
 
 private:
     static MergeTreeDataSelectAnalysisResultPtr selectRangesToReadImpl(
@@ -242,6 +245,7 @@ private:
 
     std::optional<MergeTreeAllRangesCallback> all_ranges_callback;
     std::optional<MergeTreeReadTaskCallback> read_task_callback;
+    ReadingStepIndentifier identifier{-1};
 };
 
 struct MergeTreeDataSelectAnalysisResult

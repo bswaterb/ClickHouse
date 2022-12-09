@@ -1,8 +1,11 @@
-#include <Processors/QueryPlan/Optimizations/Optimizations.h>
-#include <Processors/QueryPlan/Optimizations/QueryPlanOptimizationSettings.h>
 #include <Common/Exception.h>
 #include <Processors/QueryPlan/MergingAggregatedStep.h>
+#include <Processors/QueryPlan/Optimizations/Optimizations.h>
+#include <Processors/QueryPlan/Optimizations/QueryPlanOptimizationSettings.h>
+#include <Processors/QueryPlan/ReadFromMergeTree.h>
 #include <Processors/QueryPlan/UnionStep.h>
+
+
 #include <stack>
 
 namespace DB
@@ -15,6 +18,32 @@ namespace ErrorCodes
 
 namespace QueryPlanOptimizations
 {
+
+void optimizeTreeZerothPass(QueryPlan::Node & root)
+{
+    std::deque<QueryPlan::Node *> queue;
+    queue.emplace_back(&root);
+
+    using ReadingStepIdentifier = ssize_t;
+    ReadingStepIdentifier identifier{0};
+
+    while (!queue.empty())
+    {
+        auto * current = queue.front();
+        queue.pop_front();
+
+        for (auto * child : current->children)
+            queue.emplace_back(child);
+
+        auto * read_from_merge_tree = typeid_cast<ReadFromMergeTree *>(current->step.get());
+
+        if (!read_from_merge_tree)
+            continue;
+
+        read_from_merge_tree->setReadingStepIdentifier(identifier);
+        ++identifier;
+    }
+}
 
 void optimizeTreeFirstPass(const QueryPlanOptimizationSettings & settings, QueryPlan::Node & root, QueryPlan::Nodes & nodes)
 {
